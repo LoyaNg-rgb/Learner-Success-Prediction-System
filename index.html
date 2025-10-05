@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learner Success Prediction System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .result.danger {
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .result h3 {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .metric:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-label {
+            font-weight: 600;
+        }
+        
+        .metric-value {
+            font-size: 1.1em;
+        }
+        
+        .file-upload {
+            border: 2px dashed #667eea;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .file-upload:hover {
+            background: #f0f0f0;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            border: none;
+            background: #e0e0e0;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        
+        .tab.active {
+            background: white;
+            color: #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Learner Success Prediction System</h1>
+            <p>XGBoost-powered At-Risk Learner Identification</p>
+        </div>
+        
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('individual')">Individual Prediction</button>
+                <button class="tab" onclick="showTab('batch')">Batch Prediction</button>
+            </div>
+            
+            <div id="individual" class="tab-content active">
+                <h2>Individual Learner Prediction</h2>
+                <form id="predictionForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Video Watch Time (hours)</label>
+                            <input type="number" step="0.1" name="video_watch_time" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Quiz Score (0-100)</label>
+                            <input type="number" step="0.1" name="quiz_scores" min="0" max="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Login Frequency (per week)</label>
+                            <input type="number" name="login_frequency" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Session Duration (hours)</label>
+                            <input type="number" step="0.1" name="session_duration" min="0" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Assignment Score (0-100)</label>
+                            <input type="number" step="0.1" name="assignment_scores" min="0" max="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Assignment Submissions</label>
+                            <input type="number" name="assignment_submission" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Forum Posts</label>
+                            <input type="number" name="forum_posts" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Completion Rate (%)</label>
+                            <input type="number" step="0.1" name="completion_rate" min="0" max="100" required>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">Predict Risk Level</button>
+                </form>
+                
+                <div id="result" class="result"></div>
+            </div>
+            
+            <div id="batch" class="tab-content">
+                <h2>Batch Prediction</h2>
+                <p style="margin-bottom: 20px; color: #666;">Upload a CSV file with learner data to predict risk levels for multiple learners</p>
+                
+                <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                    <p style="font-size: 1.2em; margin-bottom: 10px;">📁 Click to upload CSV file</p>
+                    <p style="color: #666;">Supported format: CSV with learner engagement metrics</p>
+                    <input type="file" id="fileInput" accept=".csv" style="display: none;" onchange="uploadFile(this)">
+                </div>
+                
+                <div id="batchResult" class="result"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab).classList.add('active');
+        }
+        
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = parseFloat(value);
+            });
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                const resultDiv = document.getElementById('result');
+                resultDiv.style.display = 'block';
+                
+                if (result.success) {
+                    resultDiv.className = result.prediction === 1 ? 'result danger' : 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>${result.risk_level}</h3>
+                        <div class="metric">
+                            <span class="metric-label">Risk Probability:</span>
+                            <span class="metric-value">${result.risk_probability.toFixed(2)}%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Confidence:</span>
+                            <span class="metric-value">${result.confidence.toFixed(2)}%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Prediction:</span>
+                            <span class="metric-value">${result.prediction === 1 ? 'Intervention Needed' : 'On Track'}</span>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.className = 'result danger';
+                    resultDiv.innerHTML = `<h3>Error</h3><p>${result.error}</p>`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+        
+        async function uploadFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/batch_predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                const resultDiv = document.getElementById('batchResult');
+                resultDiv.style.display = 'block';
+                
+                if (result.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>Batch Prediction Results</h3>
+                        <div class="metric">
+                            <span class="metric-label">Total Learners:</span>
+                            <span class="metric-value">${result.total_learners}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">At-Risk Learners:</span>
+                            <span class="metric-value">${result.at_risk_count}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">At-Risk Percentage:</span>
+                            <span class="metric-value">${result.at_risk_percentage.toFixed(2)}%</span>
+                        </div>
+                        <p style="margin-top: 15px; color: #666;">Detailed results have been processed successfully.</p>
+                    `;
+                } else {
+                    resultDiv.className = 'result danger';
+                    resultDiv.innerHTML = `<h3>Error</h3><p>${result.error}</p>`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred during upload. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>
