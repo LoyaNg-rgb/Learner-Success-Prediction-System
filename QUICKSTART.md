@@ -33,7 +33,7 @@ Open `http://localhost:5000` in your browser.
 
 ### Step 1: Clone and Setup Environment
 ```bash
-git clone https://github.com/yourusername/learner-success-prediction.git
+git clone https://github.com/LoyaNg-rgb/learner-success-prediction.git
 cd learner-success-prediction
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
